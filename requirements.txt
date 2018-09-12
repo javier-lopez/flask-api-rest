@@ -1,0 +1,6 @@
+flask==0.12.2 #https://github.com/pallets/flask/issues/2725
+Flask-API
+flask-bcrypt
+itsdangerous
+flask_httpauth
+flask-mongoengine

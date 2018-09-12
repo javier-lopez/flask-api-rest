@@ -1,0 +1,48 @@
+version: '3.4'
+
+services:
+  mongodb:
+    image: aashreys/mongo-auth:latest
+    volumes:
+      - ./mongodb-data:/data/db
+    environment:
+      - AUTH=yes
+      - MONGODB_ADMIN_USER=admin
+      - MONGODB_ADMIN_PASS=admin
+      - MONGODB_APPLICATION_DATABASE=app
+      - MONGODB_APPLICATION_USER=app
+      - MONGODB_APPLICATION_PASS=app
+    networks:
+      - backend
+
+  nginx:
+    image: nginx:1.13.10-alpine
+    ports:
+      - "5000:80"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+    depends_on:
+      - app
+    networks:
+      - frontend
+
+  app:
+    build: .
+    depends_on:
+      - mongodb
+    volumes:
+      - .:/usr/src/app
+    working_dir: "/usr/src/app"
+    command: gunicorn -w 2 -b :8000 app:app
+    restart: on-failure:5
+    networks:
+      - frontend
+      - backend
+    environment:
+      - LANG=C.UTF-8
+
+networks:
+  frontend:
+    driver: bridge #or overlay in swarm mode
+  backend:
+    driver: bridge #or overlay in swarm mode

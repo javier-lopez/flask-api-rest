@@ -1,0 +1,194 @@
+---
+test_name: Create test user
+
+stages:
+  - name: Make sure test user exists
+    request:
+      url: http://localhost:5000/api/user
+      json:
+        username: foo
+        password: bar
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 201
+      body:
+        username: foo
+
+---
+test_name: Test getting API token requires auth
+
+stages:
+  - name: Get API token without auth fails
+    request:
+      url: http://localhost:5000/api/token
+      method: GET
+    response:
+      status_code: 401
+
+  - name: Get API token with auth data sucess
+    request:
+      url: http://localhost:5000/api/token
+      method: GET
+      auth:
+        - foo
+        - bar
+    response:
+      status_code: 200
+      save:
+        body:
+            test_api_token: token
+
+---
+test_name: Login with API Token
+
+stages:
+  - name: Get API token
+    request:
+      url: http://localhost:5000/api/token
+      method: GET
+      auth:
+        - foo
+        - bar
+    response:
+      status_code: 200
+      save:
+        body:
+            test_api_token: token
+
+  - name: Get username associated with token
+    request:
+      url: http://localhost:5000/api/whoami
+      method: GET
+      auth:
+        - "{test_api_token}"
+        - placeholder
+    response:
+      status_code: 200
+      body:
+        whoami: Hello, foo!
+
+---
+test_name: Create moods
+
+stages:
+  - name: Get API token
+    request:
+      url: http://localhost:5000/api/token
+      method: GET
+      auth:
+        - foo
+        - bar
+    response:
+      status_code: 200
+      save:
+        body:
+            test_api_token: token
+
+  - name: Add happy mood to test user
+    request:
+      url: http://localhost:5000/api/mood
+      auth:
+        - "{test_api_token}"
+        - placeholder
+      json:
+        mood: happy
+        lot: 41.123
+        lat: 40.123
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 201
+
+  - name: Add another happy mood to test user
+    request:
+      url: http://localhost:5000/api/mood
+      auth:
+        - "{test_api_token}"
+        - placeholder
+      json:
+        mood: happy
+        lot: 40.123
+        lat: 42.123
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 201
+
+  - name: Add a sad mood to test user
+    request:
+      url: http://localhost:5000/api/mood
+      auth:
+        - "{test_api_token}"
+        - placeholder
+      json:
+        mood: sad
+        lot: 10.123
+        lat: 42.123
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 201
+---
+
+---
+test_name: Fetch mood frequency
+
+stages:
+  - name: Get API token
+    request:
+      url: http://localhost:5000/api/token
+      method: GET
+      auth:
+        - foo
+        - bar
+    response:
+      status_code: 200
+      save:
+        body:
+            test_api_token: token
+
+  - name: Ensure happy rate is 66.3333 and sad rate is 33.333
+    request:
+      url: http://localhost:5000/api/user/foo
+      auth:
+        - "{test_api_token}"
+        - placeholder
+      method: GET
+    response:
+      status_code: 200
+      body:
+        happy: 66.66666666666667
+        sad: 33.333333333333336
+
+---
+test_name: Return happy locations
+
+stages:
+  - name: Get API token
+    request:
+      url: http://localhost:5000/api/token
+      method: GET
+      auth:
+        - foo
+        - bar
+    response:
+      status_code: 200
+      save:
+        body:
+            test_api_token: token
+
+  - name: Fetch happy locations
+    request:
+      url: http://localhost:5000/api/user/foo/happy
+      auth:
+        - "{test_api_token}"
+        - placeholder
+      method: GET
+    response:
+      status_code: 200
+---
