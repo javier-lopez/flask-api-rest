@@ -106,3 +106,7 @@ def new_mood():
 @auth.login_required
 def get_resource():
     return {'whoami': 'Hello, %s!' % g.user.username}
+
+@app.route('/')
+def get_root():
+    return {'Greetings': 'Hello World!'}
